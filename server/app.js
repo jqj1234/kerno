@@ -1,5 +1,5 @@
 const Koa = require('koa')
-const fs=require('fs');
+const fs = require('fs')
 const KStatic = require('koa-static') // 静态资源中间件
 const Logger = require('koa-logger') // 日志中间件
 const path = require('path')
@@ -10,18 +10,18 @@ const cors = require('koa2-cors')
 const koa_jwt = require('koa-jwt')
 const koaBody = require('koa-body')
 // const { historyApiFallback } = require('koa2-connect-history-api-fallback')
-const authorization=require('./middleware/authorization')
+const authorization = require('./middleware/authorization')
 const getUploadFileExt = require('./utils/getUploadFileExt')
 const getUploadFileName = require('./utils/getUploadFileName')
 const checkDirExist = require('./utils/checkDirExist')
 const getUploadDirName = require('./utils/getUploadDirName')
 
-const qiniuConfig =require('./config/qiniu_my');
+const qiniuConfig = require('./config/qiniu')
 
 // 路由
 const routers = require('./routers/index')
-const {isValidImage} = require("./utils/utils");
-const {uploadFile} = require("./utils/manageImageWithQiniu");
+const { isValidImage } = require('./utils/utils')
+const { uploadFile } = require('./utils/manageImageWithQiniu')
 
 // 常量
 const Port = process.env.PORT || 3000
@@ -56,50 +56,56 @@ app.use(cors())
 app.use(logger)
 app.use(KStatic(path.join(__dirname, staticPath)))
 
-
 // app.use(test())
 // 文件上传
-app.use(koaBody({
-  multipart: true, // 支持文件上传
-  // encoding: 'gzip',
-  formidable: {
-    uploadDir: path.join(__dirname, 'static/upload/'), // 设置文件上传目录
-    keepExtensions: true,    // 保持文件的后缀
-    maxFieldsSize: 2 * 1024 * 1024, // 文件上传大小
-    onFileBegin: async (name, file) => { // 文件上传前的设置
-      // console.log(`name: ${name}`);
-      // console.log(file);
-      const ext = getUploadFileExt(file.name)
-      // console.log(file)
-      // 最终要保存到的文件夹目录
-      const dirName = getUploadDirName()
-      const dir = path.join(__dirname, `static/upload/${dirName}`)
-      // console.log(dir)
-      // 检查文件夹是否存在如果不存在则新建文件夹
-      checkDirExist(dir)
-      // 获取文件名称
-      const fileName = getUploadFileName(ext);
+app.use(
+  koaBody({
+    multipart: true, // 支持文件上传
+    // encoding: 'gzip',
+    formidable: {
+      uploadDir: path.join(__dirname, 'static/upload/'), // 设置文件上传目录
+      keepExtensions: true, // 保持文件的后缀
+      maxFieldsSize: 2 * 1024 * 1024, // 文件上传大小
+      onFileBegin: async (name, file) => {
+        // 文件上传前的设置
+        // console.log(`name: ${name}`);
+        // console.log(file);
+        const ext = getUploadFileExt(file.name)
+        // console.log(file)
+        // 最终要保存到的文件夹目录
+        const dirName = getUploadDirName()
+        const dir = path.join(__dirname, `static/upload/${dirName}`)
+        // console.log(dir)
+        // 检查文件夹是否存在如果不存在则新建文件夹
+        checkDirExist(dir)
+        // 获取文件名称
+        const fileName = getUploadFileName(ext)
         // 重新覆盖 file.path 属性
-      file.path = `${dir}/${fileName}`
-      app.context.uploadpath = app.context.uploadpath ? app.context.uploadpath : {}
-      app.context.uploadpath[name] = `${dirName}/${fileName}`
-      // console.log(dirName)
-    },
-    onError: (err) => {
-      console.log(err)
-    },
-  }
-}))
-app.use(koa_jwt({
-  secret: 'Aerowang'
-}).unless({
-  path: [
-    /^\/api\/v1\/web/,
-    /^\/api\/v1\/admin\/login/,
-    /^\/api\/v1\/admin\/register/,
-    /^\/static\/upload/
-  ] //除了这个地址，其他的URL都需要验证
-}))
+        file.path = `${dir}/${fileName}`
+        app.context.uploadpath = app.context.uploadpath
+          ? app.context.uploadpath
+          : {}
+        app.context.uploadpath[name] = `${dirName}/${fileName}`
+        // console.log(dirName)
+      },
+      onError: err => {
+        console.log(err)
+      }
+    }
+  })
+)
+app.use(
+  koa_jwt({
+    secret: 'Aerowang'
+  }).unless({
+    path: [
+      /^\/api\/v1\/web/,
+      /^\/api\/v1\/admin\/login/,
+      /^\/api\/v1\/admin\/register/,
+      /^\/static\/upload/
+    ] //除了这个地址，其他的URL都需要验证
+  })
+)
 // 验证
 app.use(authorization())
 // 路由加载
