@@ -2,10 +2,10 @@ const Router = require('koa-router')
 const router = new Router()
 const fs = require('fs')
 const path = require('path')
-const {isValidImage}=require('../../utils/utils')
+const { isValidImage } = require('../../utils/utils')
 
-const config =require("../../config/qiniu_my");
-const {uploadFile} = require("../../utils/manageImageWithQiniu");
+const config = require('../../config/qiniu')
+const { uploadFile } = require('../../utils/manageImageWithQiniu')
 // const Koa = require('koa')
 // const koaBody = require('koa-body')
 // const path = require('path')
@@ -39,23 +39,25 @@ const {uploadFile} = require("../../utils/manageImageWithQiniu");
 const routers = router
   // .get('/routes',routes.routes)
   //
-  .post('/file', async (ctx) => {
+  .post('/file', async ctx => {
     if (ctx.request.files) {
       let fileUrl = `${ctx.origin}/upload/${ctx.uploadpath.file}`
       //在这判断是否要将图片存为七牛
-        // console.log(ctx.request.files)
-        // console.log("文件===>",fileUrl);
-      if(config.enable){
-        const reader =fs.createReadStream(path.resolve(__dirname,"../../static/upload/"+ctx.uploadpath.file));
-        fileUrl=await uploadFile(reader,ctx.uploadpath.file)
-        console.log('fileUrl===>',fileUrl)
+      // console.log(ctx.request.files)
+      // console.log("文件===>",fileUrl);
+      if (config.enable) {
+        const reader = fs.createReadStream(
+          path.resolve(__dirname, '../../static/upload/' + ctx.uploadpath.file)
+        )
+        fileUrl = await uploadFile(reader, ctx.uploadpath.file)
+        console.log('fileUrl===>', fileUrl)
       }
-        ctx.body = {
-          status: 200,
-          data: {
-            fileUrl
-          },
-          msg: 'ok'
+      ctx.body = {
+        status: 200,
+        data: {
+          fileUrl
+        },
+        msg: 'ok'
       }
     } else {
       ctx.body = {
@@ -66,7 +68,7 @@ const routers = router
     }
   })
   // 删除文件
-  .delete('/file/:date/:id', async (ctx) => {
+  .delete('/file/:date/:id', async ctx => {
     const datePath = ctx.params.date
     const fileName = ctx.params.id
     const staticPath = path.resolve(__dirname, '../../static')
@@ -85,7 +87,6 @@ const routers = router
         msg: '服务器删除错误，但不影响文章编辑！'
       }
     }
-    
   })
 
 module.exports = routers
