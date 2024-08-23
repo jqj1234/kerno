@@ -52,7 +52,7 @@ const VueConfig = {
     proxy: {
       '/api': {
         target: IS_PROD
-          ? 'https://company.zerotower.cn'
+          ? 'https://www.kerno.xyz'
           : 'http://localhost:3000',
         // ws: true,
         changeOrigin: true
